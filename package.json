@@ -1,0 +1,40 @@
+{
+  "name": "dotcanvas",
+  "version": "0.1.0",
+  "description": "AI-Generated Art Marketplace on Polkadot Asset Hub",
+  "private": true,
+  "scripts": {
+    "compile": "hardhat compile",
+    "deploy:local": "hardhat deploy --network hardhat",
+    "deploy:westend": "hardhat deploy --network westend",
+    "test": "hardhat test",
+    "web:dev": "pnpm --filter web dev",
+    "server:start": "cd server && uvicorn main:app --reload --host 0.0.0.0 --port 8000"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-chai-matchers": "^2.0.0",
+    "@nomicfoundation/hardhat-ethers": "^3.0.0",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "@nomicfoundation/hardhat-verify": "^2.0.0",
+    "@openzeppelin/contracts": "^4.9.3",
+    "@typechain/ethers-v6": "^0.5.0",
+    "@typechain/hardhat": "^9.0.0",
+    "@types/chai": "^4.3.5",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^20.5.0",
+    "chai": "^4.3.7",
+    "dotenv": "^16.5.0",
+    "ethers": "^6.7.1",
+    "hardhat": "^2.23.0",
+    "hardhat-deploy": "^0.11.45",
+    "hardhat-gas-reporter": "^1.0.9",
+    "solidity-coverage": "^0.8.4",
+    "ts-node": "^10.9.1",
+    "typechain": "^8.3.1",
+    "typescript": "^5.1.6"
+  },
+  "workspaces": [
+    "web"
+  ]
+}
