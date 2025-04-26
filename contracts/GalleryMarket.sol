@@ -44,7 +44,7 @@ contract DotCanvasMarket is ERC721Holder, ReentrancyGuard, Ownable {
      * @dev List an NFT for sale
      * @param nftContract The NFT contract address
      * @param tokenId The token ID
-     * @param price The listing price in WND
+     * @param price The listing price in DOT
      * @return listingId The ID of the created listing
      */
     function listNFT(address nftContract, uint256 tokenId, uint256 price) external returns (uint256) {

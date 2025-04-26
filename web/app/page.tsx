@@ -165,7 +165,7 @@ export default function Home() {
               <p>
                 DotCanvas is a decentralized marketplace for AI-generated artwork, built on Polkadot Asset Hub's Westend testnet.
                 Artists can generate unique images using Stable Diffusion XL Lightning, store them on IPFS, mint them as NFTs, 
-                and sell them for WND tokens.
+                and sell them for DOT tokens.
               </p>
               <p>
                 The platform uses two smart contracts: DotCanvasNFT for minting and managing NFTs (with ERC-2981 royalty support),

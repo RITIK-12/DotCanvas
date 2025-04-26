@@ -2,14 +2,14 @@
 
 ## AI-Generated Art Marketplace on Polkadot Asset Hub
 
-DotCanvas is a decentralized marketplace for AI-generated artwork, built on Polkadot Asset Hub's Westend testnet. Artists can generate unique images using Stable Diffusion XL Lightning, store them on IPFS, mint them as NFTs, and sell them for WND tokens.
+DotCanvas is a decentralized marketplace for AI-generated artwork, built on Polkadot Asset Hub's Westend testnet. Artists can generate unique images using Stable Diffusion XL Lightning, store them on IPFS, mint them as NFTs, and sell them for DOT tokens.
 
 ### 🎯 Key Features
 
 - **AI Art Generation**: Create unique artwork using Stable Diffusion XL Lightning
 - **Decentralized Storage**: Store images and metadata on IPFS via NFT.Storage
 - **NFT Minting**: Mint your art as ERC-721 tokens with optional royalties
-- **Marketplace**: List, buy, and sell NFTs with WND tokens
+- **Marketplace**: List, buy, and sell NFTs with DOT tokens
 - **Web3 Integration**: Seamless connection with MetaMask and other wallets
 
 ### 🚀 Quick Start
@@ -20,8 +20,8 @@ DotCanvas is a decentralized marketplace for AI-generated artwork, built on Polk
    - Network Name: Westend Asset Hub
    - RPC URL: https://westend-asset-hub-eth-rpc.polkadot.io
    - Chain ID: 420420421
-   - Currency Symbol: WND
-4. Get test WND tokens from the faucet
+   - Currency Symbol: DOT
+4. Get test DOT tokens from the faucet
 5. Copy `env.template` to `.env` and fill in your details
 6. Compile contracts: `pnpm compile`
 7. Deploy contracts: `pnpm deploy:westend`

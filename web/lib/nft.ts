@@ -14,21 +14,21 @@ export function extractIpfsCid(uri: string): string {
 }
 
 /**
- * Format a price value in WND with appropriate precision
+ * Format a price value in DOT with appropriate precision
  * @param price Raw price value in Wei
  * @returns Formatted price string with symbol
  */
 export function formatPrice(price: bigint): string {
-  // Convert Wei to WND (18 decimals)
+  // Convert Wei to DOT (18 decimals)
   const ethValue = Number(price) / 10**18;
   
   // Format with appropriate precision
   if (ethValue < 0.001) {
-    return `< 0.001 WND`;
+    return `< 0.001 DOT`;
   } else if (ethValue < 1) {
-    return `${ethValue.toFixed(3)} WND`;
+    return `${ethValue.toFixed(3)} DOT`;
   } else {
-    return `${ethValue.toFixed(2)} WND`;
+    return `${ethValue.toFixed(2)} DOT`;
   }
 }
 

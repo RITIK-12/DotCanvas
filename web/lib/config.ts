@@ -12,8 +12,8 @@ export const NETWORK_CONFIG = {
   chainId: parseInt(process.env.NEXT_PUBLIC_CHAIN_ID || "420420421"),
   name: "Polkadot Asset Hub Westend",
   currency: {
-    name: "Westend",
-    symbol: "WND",
+    name: "Polkadot",
+    symbol: "DOT",
     decimals: 18
   },
   rpcUrl: process.env.NEXT_PUBLIC_RPC_URL || "https://westend-asset-hub-eth-rpc.polkadot.io",
