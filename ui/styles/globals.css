@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 13, 12, 34;
+  --background-end-rgb: 28, 27, 75;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+    to bottom,
+    rgb(var(--background-start-rgb)),
+    rgb(var(--background-end-rgb))
+  );
+  min-height: 100vh;
+}
+
+/* Custom styles for the DotCanvas app */
+.nft-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.nft-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+}
+
+.image-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.5rem;
+}
+
+.image-container img {
+  transition: transform 0.5s ease;
+}
+
+.image-container:hover img {
+  transform: scale(1.05);
+}
+
+/* Gradient text */
+.gradient-text {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600;
+}
+
+/* Button styles */
+.btn-primary {
+  @apply px-6 py-3 bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors;
+}
+
+.btn-secondary {
+  @apply px-6 py-3 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors;
+}
+
+/* Form input styles */
+.form-input {
+  @apply w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white;
+}
+
+.form-input:focus {
+  @apply outline-none border-indigo-500;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgb(var(--background-start-rgb));
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4f46e5;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6366f1;
+} 

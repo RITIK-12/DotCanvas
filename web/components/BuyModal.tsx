@@ -90,7 +90,7 @@ export default function BuyModal({ listing, onClose }: BuyModalProps) {
                 Token ID: {listing.tokenId}
               </p>
               <div className="text-xl font-bold text-blue-600">
-                {listing.price} WND
+                {listing.price} DOT
               </div>
               <p className="text-xs text-gray-500 mt-1">
                 Seller: {listing.seller.slice(0, 6)}...{listing.seller.slice(-4)}
@@ -101,7 +101,7 @@ export default function BuyModal({ listing, onClose }: BuyModalProps) {
           {/* Confirm purchase */}
           <div className="mt-6 bg-gray-50 p-4 rounded-lg">
             <p className="text-sm text-gray-700 mb-4">
-              You are about to purchase this NFT for <span className="font-semibold">{listing.price} WND</span>. 
+              You are about to purchase this NFT for <span className="font-semibold">{listing.price} DOT</span>. 
               This action cannot be undone.
             </p>
             

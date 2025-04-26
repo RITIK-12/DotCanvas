@@ -85,7 +85,7 @@ export default function GalleryCard({ listing, isOwned = false, onBuy }: Gallery
       setIsListing(true);
       
       // 1. Show price input modal (simplified here)
-      const price = prompt('Enter price in WND:');
+      const price = prompt('Enter price in DOT:');
       if (!price) {
         setIsListing(false);
         return;
@@ -138,7 +138,7 @@ export default function GalleryCard({ listing, isOwned = false, onBuy }: Gallery
         {!isOwned && (
           <div className="mt-3 flex items-center justify-between">
             <div className="font-medium text-gray-800">
-              {listing.price} WND
+              {listing.price} DOT
             </div>
             <button 
               onClick={onBuy}
