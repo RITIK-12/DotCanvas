@@ -11,12 +11,14 @@ const WESTEND_ASSET_HUB_RPC_URL = process.env.WESTEND_ASSET_HUB_RPC_URL || "http
 
 const config: HardhatUserConfig = {
   solidity: {
-    version: "0.8.17",
+    version: "0.8.4",
     settings: {
       optimizer: {
         enabled: true,
-        runs: 200,
+        runs: 1,
       },
+      evmVersion: "berlin",
+      viaIR: false,
     },
   },
   networks: {
@@ -28,13 +30,15 @@ const config: HardhatUserConfig = {
     westend: {
       url: WESTEND_ASSET_HUB_RPC_URL,
       accounts: [PRIVATE_KEY],
-      chainId: 420420421, // Westend Asset Hub chain ID
-      gasPrice: "auto",
+      chainId: 420420421,
+      gasPrice: 1000000000,
+      gas: 2000000,
+      timeout: 300000,
     },
   },
   namedAccounts: {
     deployer: {
-      default: 0, // use the first account as the deployer
+      default: 0,
     },
   },
   paths: {
@@ -47,7 +51,7 @@ const config: HardhatUserConfig = {
   // Verify contracts on Etherscan (placeholder, may not be applicable for Polkadot)
   etherscan: {
     apiKey: {
-      westend: "not-applicable", // No etherscan verification for Polkadot Asset Hub
+      westend: "not-applicable",
     },
   },
 };
