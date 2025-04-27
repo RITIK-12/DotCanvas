@@ -101,20 +101,23 @@ Key functions:
 - **DotCanvasNFT**: [View on Westend Asset Hub Explorer](https://westend.subscan.io/account/YOUR_CONTRACT_ADDRESS)
 - **DotCanvasMarket**: [View on Westend Asset Hub Explorer](https://westend.subscan.io/account/YOUR_CONTRACT_ADDRESS)
 
-## 🎬 Demo Video
+## 🎬 Demo & Project Walkthrough Video
 
-[Watch the Demo Video](https://youtu.be/your-video-id)
+<div>
+    <a href="https://www.loom.com/share/d4885e177f374d18a8b2d9ba3e01167b">
+      <p>DotCanvas: Democratizing AI Art Creation - Watch Video</p>
+    </a>
+    <a href="https://www.loom.com/share/d4885e177f374d18a8b2d9ba3e01167b">
+      <img style="max-width:300px;" src="https://cdn.loom.com/sessions/thumbnails/d4885e177f374d18a8b2d9ba3e01167b-eb204fa6f224c3e9-full-play.gif">
+    </a>
+</div>
 
 ## 📱 UI Screenshots
 
-![Home Page](/screenshots/homepage.png)
-![Create Art Interface](/screenshots/create-art.png)
-![Marketplace](/screenshots/marketplace.png)
-![NFT Details](/screenshots/nft-details.png)
-
-## 🎥 Project Walkthrough Video
-
-[Watch the Project Walkthrough](https://youtu.be/your-walkthrough-video-id)
+![Home Page](ui/public/assets/screenshots/homepage.png)
+![Create Art Interface](ui/public/assets/screenshots/create_art.png)
+![Mint Art Interface](ui/public/assets/screenshots/mint_art.png)
+![Gallery/Marketplace](ui/public/assets/screenshots/gallery.png)
 
 ## 📊 Canva Presentation
 
@@ -193,4 +196,4 @@ This project is licensed under the MIT License.
 
 ---
 
-Built for the Polkadot Hackathon by [Your Team Name] 🚀
+Built for the Polkadot Hackathon by Ritik Bompilwar. 🚀
