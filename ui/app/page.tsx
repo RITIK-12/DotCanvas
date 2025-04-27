@@ -361,12 +361,12 @@ export default function Home() {
         {/* Home Page */}
         {activeTab === 'home' && (
           <div className="text-center my-16">
-            <div className="mb-8 flex justify-center">
+            <div className="mb flex justify-center">
               <Image 
                 src="/assets/home/logo.gif" 
                 alt="DotCanvas Logo" 
-                width={320} 
-                height={320} 
+                width={400} 
+                height={400} 
                 className="object-contain"
               />
             </div>
@@ -374,7 +374,7 @@ export default function Home() {
               Welcome to DotCanvas
             </h1>
             <p className="text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
-              The premier NFT marketplace built on Polkadot. Create, collect, and trade unique digital artwork in the Polkadot ecosystem.
+              Unleash your creativity with DotCanvas! Design stunning AI-generated artwork and mint exclusive NFTs on the Polkadot ecosystem. Join our community of digital artists today.
             </p>
             <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6">
               <button

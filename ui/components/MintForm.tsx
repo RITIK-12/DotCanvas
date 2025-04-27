@@ -216,10 +216,10 @@ const MintForm: React.FC<MintFormProps> = ({ onMintSuccess, nftContract, marketC
   };
 
   return (
-    <div className="max-w-3xl mx-auto bg-gray-800 rounded-xl p-6 shadow-lg">
+    <div className="max-w-6xl mx-auto bg-gray-800 rounded-xl p-10 shadow-xl">
       {!generatedImage ? (
         /* Image Generation Form */
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1">
               Name
@@ -348,12 +348,12 @@ const MintForm: React.FC<MintFormProps> = ({ onMintSuccess, nftContract, marketC
         </form>
       ) : (
         /* Preview and Mint Form */
-        <div className="space-y-6">
-          <h3 className="text-xl font-semibold text-white">Preview Your NFT</h3>
+        <div className="space-y-8">
+          <h3 className="text-2xl font-semibold text-white">Preview Your NFT</h3>
           
-          <div className="flex flex-col md:flex-row gap-6">
+          <div className="flex flex-col md:flex-row gap-12">
             {/* Image Preview */}
-            <div className="relative h-64 w-64 mx-auto md:mx-0 rounded-lg overflow-hidden">
+            <div className="relative h-96 w-96 mx-auto md:mx-0 rounded-lg overflow-hidden shadow-md">
               {imagePreviewUrl && (
                 <Image
                   src={imagePreviewUrl}
@@ -365,10 +365,10 @@ const MintForm: React.FC<MintFormProps> = ({ onMintSuccess, nftContract, marketC
             </div>
             
             {/* NFT Details */}
-            <div className="flex-1">
+            <div className="flex-1 space-y-4">
               <div className="mb-4">
                 <h4 className="text-sm font-medium text-gray-400">Name</h4>
-                <p className="text-white">{formData.name}</p>
+                <p className="text-white text-lg">{formData.name}</p>
               </div>
               
               <div className="mb-4">
@@ -384,7 +384,7 @@ const MintForm: React.FC<MintFormProps> = ({ onMintSuccess, nftContract, marketC
               {formData.price && (
                 <div className="mt-4">
                   <h4 className="text-sm font-medium text-gray-400">Price</h4>
-                  <p className="text-white font-semibold">{formData.price} DOT</p>
+                  <p className="text-white text-lg font-semibold">{formData.price} DOT</p>
                 </div>
               )}
             </div>
