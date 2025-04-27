@@ -12,10 +12,14 @@ import BuyModal from '../components/BuyModal';
 import UploadArtForm from '../components/UploadArtForm';
 import { ethers } from 'ethers';
 import { getSampleListings } from '../sampleData';
+import { toast } from "react-hot-toast";
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
+  const router = useRouter();
+  
   // State management
-  const [activeTab, setActiveTab] = useState<'browse' | 'mint' | 'my-nfts' | 'upload'>('browse');
+  const [activeTab, setActiveTab] = useState('home');
   const [nfts, setNfts] = useState<NFT[]>([]);
   const [listings, setListings] = useState<NFTListing[]>([]);
   const [selectedNft, setSelectedNft] = useState<NFT | null>(null);
@@ -190,13 +194,23 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-900 to-indigo-900 text-white">
+    <div className="min-h-screen bg-gray-900 text-white">
       {/* Header */}
-      <header className="p-4 border-b border-gray-800">
-        <div className="container mx-auto flex justify-between items-center">
-          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
-            DotCanvas
-          </h1>
+      <header className="bg-gray-800 shadow-md">
+        <div className="container mx-auto p-4 flex flex-col md:flex-row justify-between items-center">
+          {/* Logo */}
+          <div className="flex items-center mb-4 md:mb-0 cursor-pointer" onClick={() => setActiveTab('home')}>
+            <Image 
+              src="/assets/home/logo.gif" 
+              alt="DotCanvas Logo" 
+              width={40} 
+              height={40} 
+              className="object-contain mr-2"
+            />
+            <span className="text-2xl font-bold text-white">DotCanvas</span>
+          </div>
+          
+          {/* Navigation */}
           <div className="flex space-x-4 items-center">
             <nav className="hidden md:block">
               <ul className="flex space-x-6">
@@ -317,7 +331,7 @@ export default function Home() {
       {/* Main Content */}
       <div className="container mx-auto p-4">
         {/* Wallet not connected message */}
-        {!isConnected && activeTab !== 'browse' && (
+        {!isConnected && activeTab !== 'browse' && activeTab !== 'home' && (
           <div className="text-center my-20">
             <h2 className="text-2xl font-bold mb-4">Connect your wallet to {activeTab === 'mint' ? 'create' : 'view your'} NFTs</h2>
             <p className="text-gray-400 mb-6">
@@ -341,6 +355,41 @@ export default function Home() {
         {isLoading && (
           <div className="flex justify-center my-10">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500"></div>
+          </div>
+        )}
+
+        {/* Home Page */}
+        {activeTab === 'home' && (
+          <div className="text-center my-16">
+            <div className="mb-8 flex justify-center">
+              <Image 
+                src="/assets/home/logo.gif" 
+                alt="DotCanvas Logo" 
+                width={320} 
+                height={320} 
+                className="object-contain"
+              />
+            </div>
+            <h1 className="text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
+              Welcome to DotCanvas
+            </h1>
+            <p className="text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
+              The premier NFT marketplace built on Polkadot. Create, collect, and trade unique digital artwork in the Polkadot ecosystem.
+            </p>
+            <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6">
+              <button
+                onClick={() => setActiveTab('browse')}
+                className="px-8 py-4 bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors text-lg font-semibold"
+              >
+                Browse Gallery
+              </button>
+              <button
+                onClick={() => setActiveTab('mint')}
+                className="px-8 py-4 bg-pink-600 rounded-lg hover:bg-pink-700 transition-colors text-lg font-semibold"
+              >
+                Create Artwork
+              </button>
+            </div>
           </div>
         )}
 
@@ -432,6 +481,6 @@ export default function Home() {
           name={(selectedListing as any).metadata?.name || `NFT #${selectedListing.tokenId}`}
         />
       )}
-    </main>
+    </div>
   );
 } 

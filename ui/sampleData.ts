@@ -5,10 +5,10 @@ import { NFT, NFTListing } from './nft';
 export const sampleNFTs = [
   {
     id: 1,
-    name: "Cosmic Dreamscape",
-    description: "A vibrant celestial landscape with colorful nebulae and distant galaxies swirling in the void of space.",
-    image: "https://images.unsplash.com/photo-1534841090574-cba2d662b62e?q=80&w=1287&auto=format&fit=crop",
-    price: "0.5",
+    name: "Nebula Genesis",
+    description: "A swirling cosmic birthplace where stars form amid colorful gas clouds and dark matter.",
+    image: "/assets/nft/Nebula Genesis.png",
+    price: "0.75",
     attributes: [
       {
         trait_type: "Style",
@@ -16,92 +16,126 @@ export const sampleNFTs = [
       },
       {
         trait_type: "Colors",
-        value: "Purple, Blue, Pink"
+        value: "Purple, Teal, Gold"
       }
     ]
   },
   {
     id: 2,
-    name: "Neon City Nights",
-    description: "A cyberpunk cityscape at night, bathed in the glow of neon lights reflecting off rain-slicked streets.",
-    image: "https://images.unsplash.com/photo-1563089145-599997674d42?q=80&w=1470&auto=format&fit=crop",
-    price: "0.75",
+    name: "Digital Dreamscape",
+    description: "Surreal landscape where code becomes nature, featuring binary waterfalls and circuit tree formations.",
+    image: "/assets/nft/Digital Dreamscape.png",
+    price: "0.85",
     attributes: [
       {
         trait_type: "Style",
-        value: "Cyberpunk"
+        value: "Surreal Digital"
       },
       {
-        trait_type: "Setting",
-        value: "Night City"
+        trait_type: "Theme",
+        value: "Code and Nature"
       }
     ]
   },
   {
     id: 3,
-    name: "Digital Wilderness",
-    description: "Abstract digital landscape where nature meets technology, featuring glowing flora and crystalline structures.",
-    image: "https://images.unsplash.com/photo-1604871000636-074fa5117945?q=80&w=1287&auto=format&fit=crop",
-    price: "0.65",
+    name: "Techno-Organic Fusion",
+    description: "The perfect blend of natural forms and technological elements creating a harmonious symbiotic entity.",
+    image: "/assets/nft/Techno-Organic Fusion.png",
+    price: "0.7",
     attributes: [
       {
         trait_type: "Style",
-        value: "Abstract Digital"
+        value: "Hyper-Detailed"
       },
       {
         trait_type: "Theme",
-        value: "Nature-Tech Fusion"
+        value: "Technology-Nature Fusion"
       }
     ]
   },
   {
     id: 4,
-    name: "Quantum Patterns",
-    description: "Fractal patterns resembling the quantum fabric of reality, intricate and ever-changing.",
-    image: "https://images.unsplash.com/photo-1507413245164-6160d8298b31?q=80&w=1470&auto=format&fit=crop",
-    price: "0.8",
+    name: "Crystalline Consciousness",
+    description: "A sentient crystalline structure emanating waves of digital thought patterns and quantum information.",
+    image: "/assets/nft/Crystalline Consciousness.png",
+    price: "0.95",
     attributes: [
       {
         trait_type: "Style",
-        value: "Fractal"
+        value: "Geometric"
       },
       {
-        trait_type: "Complexity",
-        value: "High"
+        trait_type: "Theme",
+        value: "Artificial Intelligence"
       }
     ]
   },
   {
     id: 5,
-    name: "Sunset Serenity",
-    description: "A tranquil beach scene at sunset with gentle waves and golden light reflecting off the water.",
-    image: "https://images.unsplash.com/photo-1566369484714-2b9a8bec530a?q=80&w=1288&auto=format&fit=crop",
-    price: "0.55",
+    name: "Liquid Algorithm",
+    description: "Mathematical principles visualized as flowing liquid metal with embedded patterns that shift and transform.",
+    image: "/assets/nft/Liquid Algorithm.png",
+    price: "0.65",
     attributes: [
       {
         trait_type: "Style",
-        value: "Realistic"
+        value: "Liquid Metal"
       },
       {
         trait_type: "Theme",
-        value: "Nature"
+        value: "Mathematics"
       }
     ]
   },
   {
     id: 6,
-    name: "Ethereal Portrait",
-    description: "A dreamlike portrait with flowing textures and otherworldly elements framing the subject.",
-    image: "https://images.unsplash.com/photo-1528825871115-3581a5387919?q=80&w=1470&auto=format&fit=crop",
-    price: "0.9",
+    name: "Temporal Echoes",
+    description: "Multiple timeline fragments overlapping in a single moment, showing past, present and future simultaneously.",
+    image: "/assets/nft/Temporal Echoes.png",
+    price: "0.8",
     attributes: [
       {
         trait_type: "Style",
-        value: "Ethereal"
+        value: "Layered Time"
       },
       {
-        trait_type: "Subject",
-        value: "Portrait"
+        trait_type: "Theme",
+        value: "Temporal"
+      }
+    ]
+  },
+  {
+    id: 7,
+    name: "Bionic Flora",
+    description: "Botanical specimens evolved with technological adaptations, creating a new ecosystem of digital plant life.",
+    image: "/assets/nft/Bionic Flora.png",
+    price: "0.6",
+    attributes: [
+      {
+        trait_type: "Style",
+        value: "Botanical Tech"
+      },
+      {
+        trait_type: "Theme",
+        value: "Future Nature"
+      }
+    ]
+  },
+  {
+    id: 8,
+    name: "Quantum Resonance",
+    description: "Visualization of quantum entanglement patterns as they ripple through the fabric of spacetime.",
+    image: "/assets/nft/Quantum Resonance.png",
+    price: "1.0",
+    attributes: [
+      {
+        trait_type: "Style",
+        value: "Abstract Physics"
+      },
+      {
+        trait_type: "Theme",
+        value: "Quantum Mechanics"
       }
     ]
   }
