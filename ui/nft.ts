@@ -27,7 +27,7 @@ export interface NFTListing {
   seller: string;
   nftContract: string;
   tokenId: number;
-  price: ethers.BigNumber;
+  price: bigint;
   active: boolean;
 }
 
@@ -38,11 +38,11 @@ export interface NFTListing {
  * @returns The token ID of the minted NFT
  */
 export async function mintNFT(
-  provider: ethers.providers.Web3Provider,
+  provider: ethers.BrowserProvider,
   metadata: NFTMetadata
 ): Promise<number> {
   try {
-    const signer = provider.getSigner();
+    const signer = await provider.getSigner();
     const nftContract = new ethers.Contract(
       CONTRACT_ADDRESSES.DotCanvasNFT,
       DOTCANVAS_NFT_ABI,
@@ -57,10 +57,10 @@ export async function mintNFT(
     const receipt = await tx.wait();
     
     // Get the token ID from the minted event
-    const event = receipt.events?.find(e => e.event === 'NFTMinted');
-    const tokenId = event?.args?.tokenId.toNumber();
+    const event = receipt.logs.find((e: any) => e.eventName === 'NFTMinted');
+    const tokenId = event?.args?.tokenId.toString();
     
-    return tokenId;
+    return Number(tokenId);
   } catch (error) {
     console.error('Error minting NFT:', error);
     throw error;
@@ -75,12 +75,12 @@ export async function mintNFT(
  * @returns The listing ID
  */
 export async function listNFT(
-  provider: ethers.providers.Web3Provider,
+  provider: ethers.BrowserProvider,
   tokenId: number,
   price: string
 ): Promise<number> {
   try {
-    const signer = provider.getSigner();
+    const signer = await provider.getSigner();
     
     // First, approve the marketplace contract to transfer the NFT
     const nftContract = new ethers.Contract(
@@ -102,7 +102,7 @@ export async function listNFT(
       signer
     );
     
-    const priceWei = ethers.utils.parseEther(price);
+    const priceWei = ethers.parseEther(price);
     const listingTx = await marketContract.listNFT(
       CONTRACT_ADDRESSES.DotCanvasNFT,
       tokenId,
@@ -111,10 +111,10 @@ export async function listNFT(
     const receipt = await listingTx.wait();
     
     // Get the listing ID from the event
-    const event = receipt.events?.find(e => e.event === 'NFTListed');
-    const listingId = event?.args?.listingId.toNumber();
+    const event = receipt.logs.find((e: any) => e.eventName === 'NFTListed');
+    const listingId = event?.args?.listingId.toString();
     
-    return listingId;
+    return Number(listingId);
   } catch (error) {
     console.error('Error listing NFT:', error);
     throw error;
@@ -128,19 +128,19 @@ export async function listNFT(
  * @param price - The price to pay (must match or exceed the listing price)
  */
 export async function buyNFT(
-  provider: ethers.providers.Web3Provider,
+  provider: ethers.BrowserProvider,
   listingId: number,
   price: string
 ): Promise<void> {
   try {
-    const signer = provider.getSigner();
+    const signer = await provider.getSigner();
     const marketContract = new ethers.Contract(
       CONTRACT_ADDRESSES.DotCanvasMarket,
       DOTCANVAS_MARKET_ABI,
       signer
     );
     
-    const priceWei = ethers.utils.parseEther(price);
+    const priceWei = ethers.parseEther(price);
     const tx = await marketContract.buyNFT(listingId, { value: priceWei });
     await tx.wait();
   } catch (error) {
@@ -155,11 +155,11 @@ export async function buyNFT(
  * @param listingId - The listing ID
  */
 export async function cancelListing(
-  provider: ethers.providers.Web3Provider,
+  provider: ethers.BrowserProvider,
   listingId: number
 ): Promise<void> {
   try {
-    const signer = provider.getSigner();
+    const signer = await provider.getSigner();
     const marketContract = new ethers.Contract(
       CONTRACT_ADDRESSES.DotCanvasMarket,
       DOTCANVAS_MARKET_ABI,

@@ -22,21 +22,29 @@ export const NETWORK_CONFIG = {
 
 // NFT.Storage configuration
 export const STORAGE_CONFIG = {
-  apiKey: "",  // Set this in your environment
+  // API key might contain periods or other special characters - use as is without manipulation
+  apiKey: process.env.NFT_STORAGE_KEY || "",
   gatewayUrl: "https://ipfs.io/ipfs/"
 };
+
+// Debug the API key format
+if (process.env.NFT_STORAGE_KEY) {
+  console.log('NFT.Storage API key length:', process.env.NFT_STORAGE_KEY.length);
+  console.log('First 5 chars:', process.env.NFT_STORAGE_KEY.substring(0, 5));
+  console.log('Last 5 chars:', process.env.NFT_STORAGE_KEY.substring(process.env.NFT_STORAGE_KEY.length - 5));
+}
 
 // AI service configuration
 export const AI_CONFIG = {
   localService: false,
   apiEndpoint: "https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/text-to-image",
-  apiKey: ""  // Set this in your environment
+  apiKey: process.env.DREAMSTUDIO_API_KEY || ""
 };
 
 // Default image generation params
 export const DEFAULT_IMAGE_PARAMS = {
-  width: 512,
-  height: 512,
+  width: 1024,
+  height: 1024,
   steps: 30,
   cfgScale: 7,
   sampler: "K_EULER_ANCESTRAL",
@@ -89,4 +97,7 @@ export const DOTCANVAS_MARKET_ABI = [
   "event NFTListingCancelled(uint256 indexed listingId)",
   "event PlatformFeeUpdated(uint256 feePercent)",
   "event FeeReceiverUpdated(address feeReceiver)"
-]; 
+];
+
+// Add this to ensure we see how the key is being loaded
+console.log('Raw NFT_STORAGE_KEY from env:', process.env.NFT_STORAGE_KEY); 

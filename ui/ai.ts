@@ -22,7 +22,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Blob
   try {
     const apiKey = AI_CONFIG.apiKey;
     if (!apiKey) {
-      throw new Error('API key not configured for image generation');
+      throw new Error('Stability AI API key is missing. Please add DREAMSTUDIO_API_KEY to your .env.local file.');
     }
     
     // Merge default parameters with provided parameters
@@ -34,6 +34,30 @@ export async function generateImage(params: ImageGenerationParams): Promise<Blob
       cfg_scale: params.cfgScale || DEFAULT_IMAGE_PARAMS.cfgScale,
       samples: params.samples || DEFAULT_IMAGE_PARAMS.samples,
     };
+    
+    // Ensure dimensions are valid for SDXL
+    const validDimensions = [
+      [1024, 1024],
+      [1152, 896],
+      [1216, 832],
+      [1344, 768],
+      [1536, 640],
+      [640, 1536],
+      [768, 1344],
+      [832, 1216],
+      [896, 1152]
+    ];
+    
+    // Check if dimensions are valid
+    const isValidDimension = validDimensions.some(
+      ([w, h]) => w === generationParams.width && h === generationParams.height
+    );
+    
+    if (!isValidDimension) {
+      console.warn(`Invalid dimensions: ${generationParams.width}x${generationParams.height}. Using 1024x1024 instead.`);
+      generationParams.width = 1024;
+      generationParams.height = 1024;
+    }
     
     // If using local service
     if (AI_CONFIG.localService) {
@@ -96,6 +120,12 @@ async function generateImageStabilityAI(params: any, apiKey: string): Promise<Bl
       samples: params.samples,
       steps: params.steps,
     };
+    
+    console.log("Sending request to Stability AI with params:", { 
+      width: params.width, 
+      height: params.height,
+      prompt: params.prompt.substring(0, 50) + "..." 
+    });
     
     const response = await fetch(AI_CONFIG.apiEndpoint, {
       method: 'POST',

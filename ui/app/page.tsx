@@ -9,6 +9,7 @@ import WalletButton from '../components/WalletButton';
 import MintForm from '../components/MintForm';
 import GalleryCard from '../components/GalleryCard';
 import BuyModal from '../components/BuyModal';
+import { ethers } from 'ethers';
 
 export default function Home() {
   // State management
@@ -282,7 +283,7 @@ export default function Home() {
                     image={listing.metadata?.image || ''}
                     name={listing.metadata?.name || `NFT #${listing.tokenId}`}
                     description={listing.metadata?.description || ''}
-                    price={(listing.price / 1e18).toString()}
+                    price={Number(ethers.formatEther(listing.price)).toString()}
                     onBuyClick={() => handleBuyClick(listing)}
                   />
                 ))}
@@ -337,7 +338,7 @@ export default function Home() {
           onClose={() => setIsBuyModalOpen(false)}
           listingId={selectedListing.id}
           tokenId={selectedListing.tokenId}
-          price={(selectedListing.price / 1e18).toString()}
+          price={Number(ethers.formatEther(selectedListing.price)).toString()}
           onBuyConfirm={handleBuyConfirm}
           image={(selectedListing as any).metadata?.image || ''}
           name={(selectedListing as any).metadata?.name || `NFT #${selectedListing.tokenId}`}
