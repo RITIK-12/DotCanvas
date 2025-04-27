@@ -3,13 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useNFTContract, useMarketContract } from '../useContracts';
 import { NFT, NFTListing } from '../nft';
-import { fetchMetadata, ipfsToHttp } from '../ipfs';
+import { ipfsToHttps } from '../ipfs';
 import Image from 'next/image';
 import WalletButton from '../components/WalletButton';
 import MintForm from '../components/MintForm';
 import GalleryCard from '../components/GalleryCard';
 import BuyModal from '../components/BuyModal';
 import { ethers } from 'ethers';
+import { getSampleListings } from '../sampleData';
 
 export default function Home() {
   // State management
@@ -33,6 +34,9 @@ export default function Home() {
     if (isConnected) {
       fetchUserNFTs();
       fetchActiveListings();
+    } else {
+      // If not connected, still show sample listings
+      setListings(getSampleListings());
     }
   }, [isConnected]);
 
@@ -46,6 +50,8 @@ export default function Home() {
       setNfts(userNfts);
     } catch (error) {
       console.error('Error fetching user NFTs:', error);
+      // Don't set NFTs to empty array on error, maintain previous state
+      // Consider adding a status message for the user instead
     } finally {
       setIsLoading(false);
     }
@@ -87,9 +93,20 @@ export default function Home() {
         })
       );
       
-      setListings(listingsWithMetadata as any);
+      // If no real listings found, use sample data
+      if (listingsWithMetadata.length === 0) {
+        // We'll display sample data to fill the marketplace
+        console.log('No real listings found, using sample data');
+        setListings(getSampleListings());
+      } else {
+        setListings(listingsWithMetadata as any);
+      }
     } catch (error) {
       console.error('Error fetching active listings:', error);
+      
+      // If we encounter an error (like contract not deployed), use sample data
+      console.log('Error fetching listings, using sample data instead');
+      setListings(getSampleListings());
     } finally {
       setIsLoading(false);
     }
@@ -97,6 +114,17 @@ export default function Home() {
 
   // Handle buy click
   const handleBuyClick = (listing: NFTListing) => {
+    // Check if this is a sample listing (has an id between 1-6)
+    const isSampleListing = listing.id >= 1 && listing.id <= 6 && 
+      listing.uri?.startsWith('ipfs://sample');
+    
+    if (isSampleListing) {
+      // For sample listings, show an alert instead of opening the buy modal
+      alert('This is a sample NFT for display purposes only. You can mint your own NFTs by clicking on "Create Art".');
+      return;
+    }
+    
+    // For real listings, proceed with the normal flow
     setSelectedListing(listing);
     setIsBuyModalOpen(true);
   };
@@ -133,6 +161,30 @@ export default function Home() {
       console.error('Error listing NFT:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Add fetchMetadata implementation here
+  const fetchMetadata = async (uri: string): Promise<any> => {
+    try {
+      const url = ipfsToHttps(uri);
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch metadata: ${response.statusText}`);
+      }
+      
+      const metadata = await response.json();
+      
+      // Convert the image URI to HTTP if needed
+      if (metadata.image) {
+        metadata.image = ipfsToHttps(metadata.image);
+      }
+      
+      return metadata;
+    } catch (error) {
+      console.error('Error fetching metadata from IPFS:', error);
+      throw error;
     }
   };
 
@@ -242,11 +294,11 @@ export default function Home() {
       {/* Main Content */}
       <div className="container mx-auto p-4">
         {/* Wallet not connected message */}
-        {!isConnected && (
+        {!isConnected && activeTab !== 'browse' && (
           <div className="text-center my-20">
-            <h2 className="text-2xl font-bold mb-4">Connect your wallet to start exploring</h2>
+            <h2 className="text-2xl font-bold mb-4">Connect your wallet to {activeTab === 'mint' ? 'create' : 'view your'} NFTs</h2>
             <p className="text-gray-400 mb-6">
-              You need to connect your wallet to browse, create, and collect AI-generated artwork.
+              You need to connect your wallet to {activeTab === 'mint' ? 'create and mint new artwork' : 'browse and manage your collection'}.
             </p>
             <button
               onClick={async () => {
@@ -270,7 +322,7 @@ export default function Home() {
         )}
 
         {/* Browse Gallery */}
-        {isConnected && activeTab === 'browse' && !isLoading && (
+        {activeTab === 'browse' && !isLoading && (
           <div>
             <h2 className="text-2xl font-bold mb-6">Browse Gallery</h2>
             {listings.length === 0 ? (
@@ -299,6 +351,7 @@ export default function Home() {
             <MintForm
               onMintSuccess={fetchUserNFTs}
               nftContract={nftContract}
+              marketContract={marketContract}
             />
           </div>
         )}

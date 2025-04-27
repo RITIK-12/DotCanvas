@@ -1,418 +1,270 @@
-// IPFS utilities for DotCanvas
-import { NFTStorage, File } from 'nft.storage';
-import { STORAGE_CONFIG } from './config';
-import { CONTRACT_ADDRESSES } from './config';
+// ipfs.ts – Preserve-only helpers for DotCanvas
+// Updated 27-Apr-2025 to match https://app.nft.storage/v1/docs/client/http-api
+// – NO MORE Classic uploads (storeBlob, storeJSON, etc.)
+// – All endpoints point at https://preserve.nft.storage/api/v1
+// – Extra helpers: listTokens, dealStatus, retryToken, deleteFailedToken,
+//   listApiKeys, removeApiKey, getUserBalance
+// – CSV is passed as Buffer → FormData (filename=tokens.csv, type=text/csv)
 
-// Interface for NFT metadata
+import FormData from 'form-data';
+import { STORAGE_CONFIG, CONTRACT_ADDRESSES } from './config';
+
+/* -------------------------------------------------------------------------- */
+/*  Auth helper                                                                */
+/* -------------------------------------------------------------------------- */
+
+type HeadersInit = Record<string, string>;
+const authHeaders = (): HeadersInit => ({
+  Authorization: `Bearer ${STORAGE_CONFIG.apiKey}`,
+});
+
+const pinataHeaders = (): HeadersInit => {
+  // Use API key and secret if available, otherwise fall back to JWT
+  if (STORAGE_CONFIG.pinataApiKey && STORAGE_CONFIG.pinataApiSecret) {
+    return {
+      'pinata_api_key': STORAGE_CONFIG.pinataApiKey,
+      'pinata_secret_api_key': STORAGE_CONFIG.pinataApiSecret
+    };
+  }
+  return {
+    Authorization: `Bearer ${STORAGE_CONFIG.pinataJWT}`,
+  };
+};
+
+/* -------------------------------------------------------------------------- */
+/*  Base URL                                                                   */
+/* -------------------------------------------------------------------------- */
+
+const PRESERVE_BASE = 'https://preserve.nft.storage/api/v1';
+const PINATA_API_BASE = 'https://api.pinata.cloud';
+
+/* -------------------------------------------------------------------------- */
+/*  NFT Metadata Types                                                         */
+/* -------------------------------------------------------------------------- */
+
 export interface NFTMetadata {
   name: string;
   description: string;
-  image: File | string;
+  image: string;
   attributes?: Array<{
     trait_type: string;
     value: string | number;
   }>;
 }
 
-// Store collection ID for reuse
-let currentCollectionId: string | null = null;
+/* -------------------------------------------------------------------------- */
+/*  File Upload and Metadata Storage (Pinata)                                  */
+/* -------------------------------------------------------------------------- */
 
-// Helper function to get authorization headers for NFT.Storage API
-function getNFTStorageHeaders(apiKey: string) {
-  // The API key could contain special characters that need escaping in some cases
-  // If standard header isn't working, the app can try to use encodeURIComponent
-  // We'll detect if the key should be encoded at runtime
+export async function uploadFile(file: File): Promise<string> {
+  const form = new FormData();
+  form.append('file', file);
   
-  // Period characters in API keys sometimes cause issues
-  const containsSpecialChars = apiKey.includes('.') || 
-                              apiKey.includes('+') || 
-                              apiKey.includes('/') || 
-                              apiKey.includes('=');
+  // Ensure API credentials are strings
+  const apiKey = String(STORAGE_CONFIG.pinataApiKey || '');
+  const apiSecret = String(STORAGE_CONFIG.pinataApiSecret || '');
   
-  console.log('API key contains special chars:', containsSpecialChars);
+  if (!apiKey || !apiSecret) {
+    throw new Error('Pinata API credentials not found. Please ensure NEXT_PUBLIC_PINATA_API_KEY and NEXT_PUBLIC_PINATA_API_SECRET are set in your .env.local file.');
+  }
   
-  // For debugging - log API key details
-  console.log('NFT.Storage API key length:', apiKey.length);
+  console.log('Using Pinata credentials:', { 
+    keyLength: apiKey.length,
+    secretLength: apiSecret.length,
+    keyPrefix: apiKey.substring(0, 3) + '...',
+  });
   
-  // Standard header format
-  return {
-    'Authorization': `Bearer ${apiKey}`
-  };
+  const res = await fetch(`${PINATA_API_BASE}/pinning/pinFileToIPFS`, {
+    method: 'POST',
+    headers: {
+      'pinata_api_key': apiKey,
+      'pinata_secret_api_key': apiSecret
+    },
+    body: form as any,
+  });
+  
+  if (!res.ok) {
+    throw new Error(`uploadFile → ${res.status} ${res.statusText} : ${await res.text()}`);
+  }
+  
+  const { IpfsHash } = await res.json();
+  return `ipfs://${IpfsHash}`;
 }
 
-/**
- * Creates a collection on NFT.Storage Preserve API
- * @returns The collection ID
- */
-async function createCollection(): Promise<string> {
-  const apiKey = STORAGE_CONFIG.apiKey;
+export async function uploadMetadata(metadata: NFTMetadata): Promise<string> {
+  // Ensure API credentials are strings
+  const apiKey = String(STORAGE_CONFIG.pinataApiKey || '');
+  const apiSecret = String(STORAGE_CONFIG.pinataApiSecret || '');
   
-  if (!apiKey) {
-    throw new Error('NFT.Storage API key is missing. Please check your .env file in the root directory.');
+  if (!apiKey || !apiSecret) {
+    throw new Error('Pinata API credentials not found. Please ensure NEXT_PUBLIC_PINATA_API_KEY and NEXT_PUBLIC_PINATA_API_SECRET are set in your .env.local file.');
   }
   
-  try {
-    // Use the Preserve API to create a collection
-    const response = await fetch('https://preserve.nft.storage/api/v1/collection/create_collection', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...getNFTStorageHeaders(apiKey)
-      },
-      body: JSON.stringify({
-        collectionName: 'DotCanvas Collection',
-        contractAddress: CONTRACT_ADDRESSES.DotCanvasNFT,
-        chainID: '420420421', // Westend Asset Hub chain ID
-        network: 'Polkadot'
-      })
-    });
-    
-    if (!response.ok) {
-      // Try to parse error response
-      let errorMessage = '';
-      try {
-        const errorData = await response.json();
-        console.error('Collection creation error:', errorData);
-        errorMessage = errorData.error?.message || errorData.message || '';
-      } catch (parseError) {
-        errorMessage = response.statusText;
-      }
-      
-      if (response.status === 401) {
-        throw new Error(`NFT.Storage API authentication failed. Please check your API key.`);
-      }
-      
-      throw new Error(`Failed to create collection: ${errorMessage || response.statusText}`);
-    }
-    
-    const data = await response.json();
-    console.log('Collection created:', data);
-    
-    // Extract collection ID from response according to the API format
-    const collectionId = data.value?.collectionId || data.collectionId || data.id;
-    
-    if (!collectionId) {
-      throw new Error('Failed to extract collection ID from response');
-    }
-    
-    return collectionId;
-  } catch (error) {
-    console.error('Error creating collection:', error);
-    throw error;
+  const res = await fetch(`${PINATA_API_BASE}/pinning/pinJSONToIPFS`, {
+    method: 'POST',
+    headers: {
+      'pinata_api_key': apiKey,
+      'pinata_secret_api_key': apiSecret,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(metadata),
+  });
+  
+  if (!res.ok) {
+    throw new Error(`uploadMetadata → ${res.status} ${res.statusText} : ${await res.text()}`);
   }
+  
+  const { IpfsHash } = await res.json();
+  return `ipfs://${IpfsHash}`;
 }
 
-/**
- * Get or create a collection ID
- * @returns The collection ID
- */
-async function getOrCreateCollection(): Promise<string> {
-  if (currentCollectionId) {
-    return currentCollectionId;
-  }
-  
-  try {
-    // Try to list collections first
-    const collections = await listCollections();
-    
-    if (collections.length > 0) {
-      // Use the first collection if available
-      const collectionId = collections[0].id;
-      if (!collectionId) {
-        throw new Error('Collection ID is missing in the collection object');
-      }
-      currentCollectionId = collectionId;
-      return collectionId;
-    }
-    
-    // Create a new collection if none exists
-    const newCollectionId = await createCollection();
-    currentCollectionId = newCollectionId;
-    return newCollectionId;
-  } catch (error) {
-    console.error('Error getting/creating collection:', error);
-    throw error;
-  }
-}
+/* -------------------------------------------------------------------------- */
+/*  Collections                                                                */
+/* -------------------------------------------------------------------------- */
 
-/**
- * List available collections
- * @returns Array of collections
- */
-async function listCollections(): Promise<any[]> {
-  const apiKey = STORAGE_CONFIG.apiKey;
-  
-  if (!apiKey) {
-    throw new Error('NFT.Storage API key is missing. Please check your .env file in the root directory.');
-  }
-  
-  try {
-    const response = await fetch('https://preserve.nft.storage/api/v1/collection/list_collections', {
-      method: 'GET',
-      headers: getNFTStorageHeaders(apiKey)
-    });
-    
-    if (!response.ok) {
-      const error = await response.json();
-      console.error('List collections error:', error);
-      throw new Error(`Failed to list collections: ${error.error?.message || response.statusText}`);
-    }
-    
-    const data = await response.json();
-    return data.value || data.collections || [];
-  } catch (error) {
-    console.error('Error listing collections:', error);
-    throw error;
-  }
-}
+export async function createCollection(
+  collectionName = 'DotCanvas'
+): Promise<string> {
+  const res = await fetch(`${PRESERVE_BASE}/collection/create_collection`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify({
+      collectionName,
+      contractAddress: CONTRACT_ADDRESSES.DotCanvasNFT,
+      chainID: '420420421', // Westend Asset Hub chain ID
+      network: 'Polkadot',
+    }),
+  });
 
-/**
- * Uploads a file to IPFS using the standard NFT.Storage API
- * This is used for compatibility and initial CID generation
- * @param file - The file to upload
- * @returns The IPFS CID
- */
-async function uploadFileStandard(file: File): Promise<string> {
-  const apiKey = STORAGE_CONFIG.apiKey;
-  
-  if (!apiKey) {
-    throw new Error('NFT.Storage API key is missing. Please check your .env file in the root directory.');
-  }
-  
-  try {
-    // Log exact header format for debugging
-    console.log('Using exact Authorization header: Bearer ' + apiKey);
-    
-    // Direct upload to NFT.Storage standard API
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    const response = await fetch('https://api.nft.storage/upload', {
-      method: 'POST',
-      headers: getNFTStorageHeaders(apiKey),
-      body: formData
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('NFT.Storage upload error:', errorData);
-      console.error('Response status:', response.status);
-      console.error('Response headers:', Object.fromEntries([...response.headers.entries()]));
-      
-      // More specific error messages based on API responses
-      if (response.status === 401) {
-        throw new Error(`NFT.Storage API key is invalid. Please check your NFT_STORAGE_KEY in the .env file.`);
-      } else if (response.status === 429) {
-        throw new Error(`NFT.Storage rate limit exceeded. Please try again later.`);
-      }
-      
-      throw new Error(`NFT.Storage upload failed: ${errorData.error?.message || response.statusText}`);
-    }
-    
-    const data = await response.json();
-    return data.value.cid;
-  } catch (error) {
-    console.error('Error in standard upload:', error);
-    throw error;
-  }
-}
-
-/**
- * Add a token to the collection
- * @param tokenId - The token ID
- * @param cid - The IPFS CID
- * @returns Success status
- */
-async function addTokenToCollection(tokenId: string, cid: string): Promise<boolean> {
-  const apiKey = STORAGE_CONFIG.apiKey;
-  
-  if (!apiKey) {
-    throw new Error('NFT.Storage API key is missing. Please check your .env file in the root directory.');
-  }
-  
-  try {
-    // Get or create collection ID
-    const collectionId = await getOrCreateCollection();
-    
-    // Create a CSV file with the token mapping
-    // Format: tokenID,cid (per API documentation)
-    const csvContent = 'tokenID,cid\n' + `${tokenId},${cid}`;
-    const csvFile = new File([csvContent], 'tokens.csv', { type: 'text/csv' });
-    
-    // Create form data exactly as specified in the API documentation
-    const formData = new FormData();
-    formData.append('collectionID', collectionId);
-    formData.append('file', csvFile);
-    
-    // Upload to Preserve API
-    const response = await fetch('https://preserve.nft.storage/api/v1/collection/add_tokens', {
-      method: 'POST',
-      headers: getNFTStorageHeaders(apiKey),
-      body: formData
-    });
-    
-    if (!response.ok) {
-      let errorMessage = '';
-      try {
-        const errorData = await response.json();
-        console.error('Add tokens error:', errorData);
-        errorMessage = errorData.error?.message || errorData.message || '';
-      } catch (parseError) {
-        errorMessage = response.statusText;
-      }
-      
-      if (response.status === 401) {
-        throw new Error(`NFT.Storage API authentication failed. Please check your API key.`);
-      }
-      
-      throw new Error(`Failed to add token: ${errorMessage || response.statusText}`);
-    }
-    
-    console.log('Token added to collection successfully');
-    return true;
-  } catch (error) {
-    console.error('Error adding token to collection:', error);
-    throw error;
-  }
-}
-
-/**
- * Uploads an image to IPFS via NFT.Storage
- * @param imageFile - The image file to upload
- * @param tokenId - Optional token ID to associate with the upload
- * @returns The IPFS CID (Content Identifier)
- */
-export async function uploadImage(imageFile: File, tokenId?: string): Promise<string> {
-  try {
-    const apiKey = STORAGE_CONFIG.apiKey;
-    
-    // Validate API key format before attempting upload
-    if (!apiKey || apiKey.length < 10) {
-      throw new Error('Invalid NFT.Storage API key. Please check your NFT_STORAGE_KEY in the .env file.');
-    }
-    
-    console.log(`Attempting to upload with API key: ${apiKey.substring(0, 5)}...`);
-    
-    // First upload the file to get a CID - focus only on this basic functionality
-    const cid = await uploadFileStandard(imageFile);
-    console.log('Standard upload successful, CID:', cid);
-    
-    // Skip collection functionality for now
-    // if (tokenId) {
-    //   try {
-    //     await addTokenToCollection(tokenId, cid);
-    //   } catch (collectionError) {
-    //     console.error('Error adding to collection, but file was uploaded:', collectionError);
-    //   }
-    // }
-    
-    return cid;
-  } catch (error) {
-    console.error('Error uploading image to IPFS:', error);
-    
-    // Provide more context for API key errors
-    if (error instanceof Error && 
-        (error.message.includes('API key') || 
-         error.message.includes('token') ||
-         error.message.includes('Unauthorized') || 
-         error.message.includes('authenticate'))) {
-      throw new Error(`NFT.Storage API authentication failed. Please check that your NFT_STORAGE_KEY in the .env file is correct. NFT.Storage API keys are typically 40+ characters long and should be entered exactly as provided from nft.storage dashboard.`);
-    }
-    
-    throw error;
-  }
-}
-
-/**
- * Creates and uploads NFT metadata to IPFS
- * @param metadata - The NFT metadata object
- * @param tokenId - Optional token ID to associate with the metadata
- * @returns The IPFS URI for the metadata
- */
-export async function uploadMetadata(metadata: NFTMetadata, tokenId?: string): Promise<string> {
-  try {
-    // If the image is already a CID string, create a proper IPFS URL
-    let imageUrl: string;
-    if (typeof metadata.image === 'string') {
-      imageUrl = `ipfs://${metadata.image}`;
-    } else {
-      // First upload the image and get its CID - skip collection functionality
-      const imageCid = await uploadImage(metadata.image);
-      imageUrl = `ipfs://${imageCid}`;
-    }
-    
-    // Create the metadata JSON
-    const metadataJson = {
-      name: metadata.name,
-      description: metadata.description,
-      image: imageUrl,
-      attributes: metadata.attributes || []
-    };
-    
-    // Convert metadata to a File object
-    const metadataFile = new File(
-      [JSON.stringify(metadataJson, null, 2)],
-      'metadata.json', 
-      { type: 'application/json' }
+  if (!res.ok) {
+    throw new Error(
+      `createCollection → ${res.status} ${res.statusText} : ${await res.text()}`
     );
-    
-    // Upload the metadata file - skip collection functionality
-    const metadataCid = await uploadImage(metadataFile);
-    
-    // Return the full IPFS URI
-    return `ipfs://${metadataCid}`;
-  } catch (error) {
-    console.error('Error uploading metadata to IPFS:', error);
-    throw error;
   }
+  const json = await res.json();
+  return json.value?.collectionId ?? json.collectionId ?? json.id;
 }
 
-/**
- * Converts an IPFS URI to an HTTP gateway URL
- * @param ipfsUri - The IPFS URI (ipfs://...)
- * @returns The HTTP gateway URL
- */
-export function ipfsToHttp(ipfsUri: string): string {
-  if (!ipfsUri) return '';
-  
-  // Handle ipfs:// prefix
-  if (ipfsUri.startsWith('ipfs://')) {
-    const cid = ipfsUri.split('ipfs://')[1];
-    return `${STORAGE_CONFIG.gatewayUrl}${cid}`;
-  }
-  
-  // Handle bare CID
-  if (ipfsUri.match(/^[a-zA-Z0-9]{46}$/)) {
-    return `${STORAGE_CONFIG.gatewayUrl}${ipfsUri}`;
-  }
-  
-  return ipfsUri;
+export async function listCollections() {
+  const res = await fetch(`${PRESERVE_BASE}/collection/list_collections`, {
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error(`listCollections → ${res.status}`);
+  return res.json();
 }
 
-/**
- * Fetches metadata from an IPFS URI
- * @param uri - The IPFS URI
- * @returns The metadata object
- */
-export async function fetchMetadata(uri: string): Promise<any> {
-  try {
-    const url = ipfsToHttp(uri);
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch metadata: ${response.statusText}`);
-    }
-    
-    const metadata = await response.json();
-    
-    // Convert the image URI to HTTP if needed
-    if (metadata.image) {
-      metadata.image = ipfsToHttp(metadata.image);
-    }
-    
-    return metadata;
-  } catch (error) {
-    console.error('Error fetching metadata from IPFS:', error);
-    throw error;
+/* -------------------------------------------------------------------------- */
+/*  Add tokens (CSV upload)                                                    */
+/* -------------------------------------------------------------------------- */
+
+export async function addTokensToCollection(
+  collectionID: string,
+  rows: { tokenID: string; cid: string }[]
+) {
+  // Build CSV: header then each row
+  const csv = [
+    'tokenID,cid',
+    ...rows.map(({ tokenID, cid }) => `${tokenID},${cid}`),
+  ].join('\n');
+
+  const form = new FormData();
+  form.append('collectionID', collectionID);
+  form.append('file', Buffer.from(csv), {
+    filename: 'tokens.csv',
+    contentType: 'text/csv',
+  });
+
+  const res = await fetch(`${PRESERVE_BASE}/collection/add_tokens`, {
+    method: 'POST',
+    headers: { ...authHeaders(), ...form.getHeaders() },
+    body: form as any,
+  });
+
+  if (!res.ok) {
+    throw new Error(
+      `addTokens → ${res.status} ${res.statusText} : ${await res.text()}`
+    );
   }
-} 
+  return res.json();
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Pagination helper                                                          */
+/* -------------------------------------------------------------------------- */
+
+export async function listTokens(
+  collectionID: string,
+  lastKey?: string
+): Promise<any> {
+  const url = new URL(`${PRESERVE_BASE}/collection/list_tokens`);
+  url.searchParams.set('collectionID', collectionID);
+  if (lastKey) url.searchParams.set('lastKey', lastKey);
+
+  const res = await fetch(url, { headers: authHeaders() });
+  if (!res.ok) throw new Error(`listTokens → ${res.status}`);
+  return res.json(); // { tokens: [...], lastKey?: string }
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Deal status & recovery utilities                                           */
+/* -------------------------------------------------------------------------- */
+
+export const dealStatus = async (cid: string) => {
+  const url = `${PRESERVE_BASE}/collection/deal_status?cid=${cid}`;
+  const res = await fetch(url, { headers: authHeaders() });
+  if (!res.ok) throw new Error(`dealStatus → ${res.status}`);
+  return res.json();
+};
+
+export const retryToken = async (tokenID: string) => {
+  const url = `${PRESERVE_BASE}/collection/retry_tokens?tokenID=${tokenID}`;
+  const res = await fetch(url, { headers: authHeaders() });
+  if (!res.ok) throw new Error(`retryToken → ${res.status}`);
+  return res.json();
+};
+
+export const deleteFailedToken = async (tokenID: string) => {
+  const url = `${PRESERVE_BASE}/collection/delete_tokens?tokenID=${tokenID}`;
+  const res = await fetch(url, {
+    method: 'DELETE',
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error(`deleteFailedToken → ${res.status}`);
+  return res.json();
+};
+
+/* -------------------------------------------------------------------------- */
+/*  Account utilities                                                          */
+/* -------------------------------------------------------------------------- */
+
+export const listApiKeys = async () => {
+  const res = await fetch(`${PRESERVE_BASE}/auth/list_api_keys`, {
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error(`listApiKeys → ${res.status}`);
+  return res.json();
+};
+
+export const removeApiKey = async (keyID: string) => {
+  const url = `${PRESERVE_BASE}/auth/remove_api_key?keyID=${keyID}`;
+  const res = await fetch(url, { method: 'DELETE', headers: authHeaders() });
+  if (!res.ok) throw new Error(`removeApiKey → ${res.status}`);
+  return res.json();
+};
+
+export const getUserBalance = async () => {
+  const res = await fetch(`${PRESERVE_BASE}/user/get_balance`, {
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error(`getUserBalance → ${res.status}`);
+  return res.json(); // { availableStorage: "...", usedStorage: "..." }
+};
+
+/* -------------------------------------------------------------------------- */
+/*  Utility: ipfs:// → https:// gateway                                        */
+/* -------------------------------------------------------------------------- */
+
+export const ipfsToHttps = (uri: string): string =>
+  uri.startsWith('ipfs://')
+    ? `${STORAGE_CONFIG.gatewayUrl}${uri.replace('ipfs://', '')}`
+    : uri;

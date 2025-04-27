@@ -14,10 +14,14 @@ DotCanvas requires two API keys to function properly:
 
 ```
 # Stability AI/DreamStudio API key for image generation
-DREAMSTUDIO_API_KEY=your_stability_ai_key_here
+NEXT_PUBLIC_DREAMSTUDIO_API_KEY=your_stability_ai_key_here
 
 # NFT Storage API key for storing NFT metadata and images
-NFT_STORAGE_KEY=your_nft_storage_key_here
+NEXT_PUBLIC_NFT_STORAGE_KEY=your_nft_storage_key_here
+
+# Pinata API Authentication for uploads
+NEXT_PUBLIC_PINATA_API_KEY=your_pinata_api_key_here
+NEXT_PUBLIC_PINATA_API_SECRET=your_pinata_api_secret_here
 ```
 
 ## Getting API Keys

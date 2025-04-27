@@ -17,35 +17,47 @@ if (fs.existsSync(envPath)) {
     console.log('Environment variables loaded from root .env file');
     
     // Ensure API keys are properly formatted (trim whitespace)
-    if (process.env.NFT_STORAGE_KEY) {
-      const originalKey = process.env.NFT_STORAGE_KEY;
-      process.env.NFT_STORAGE_KEY = originalKey.trim();
+    if (process.env.NEXT_PUBLIC_NFT_STORAGE_KEY) {
+      const originalKey = process.env.NEXT_PUBLIC_NFT_STORAGE_KEY;
+      process.env.NEXT_PUBLIC_NFT_STORAGE_KEY = originalKey.trim();
       
-      if (originalKey !== process.env.NFT_STORAGE_KEY) {
-        console.log('⚠️ NFT_STORAGE_KEY had whitespace that was trimmed');
+      if (originalKey !== process.env.NEXT_PUBLIC_NFT_STORAGE_KEY) {
+        console.log('⚠️ NEXT_PUBLIC_NFT_STORAGE_KEY had whitespace that was trimmed');
       }
       
-      console.log(`NFT_STORAGE_KEY found (${process.env.NFT_STORAGE_KEY.length} characters)`);
+      console.log(`NEXT_PUBLIC_NFT_STORAGE_KEY found (${process.env.NEXT_PUBLIC_NFT_STORAGE_KEY.length} characters)`);
       
       // Log the first few characters to help with debugging
-      if (process.env.NFT_STORAGE_KEY.length > 0) {
-        console.log(`NFT_STORAGE_KEY format check: starts with "${process.env.NFT_STORAGE_KEY.substring(0, 5)}..."`);
+      if (process.env.NEXT_PUBLIC_NFT_STORAGE_KEY.length > 0) {
+        console.log(`NEXT_PUBLIC_NFT_STORAGE_KEY format check: starts with "${process.env.NEXT_PUBLIC_NFT_STORAGE_KEY.substring(0, 5)}..."`);
       }
     } else {
-      console.log('❌ NFT_STORAGE_KEY is missing');
+      console.log('❌ NEXT_PUBLIC_NFT_STORAGE_KEY is missing');
+      
+      // Check for incorrect variable name
+      if (process.env.NEXT_NFT_STORAGE_KEY) {
+        console.log('⚠️ Found NEXT_NFT_STORAGE_KEY instead of NEXT_PUBLIC_NFT_STORAGE_KEY - using the wrong name!');
+      } else if (process.env.NFT_STORAGE_KEY) {
+        console.log('⚠️ Found NFT_STORAGE_KEY instead of NEXT_PUBLIC_NFT_STORAGE_KEY - using the wrong name!');
+      }
     }
     
-    if (process.env.DREAMSTUDIO_API_KEY) {
-      const originalKey = process.env.DREAMSTUDIO_API_KEY;
-      process.env.DREAMSTUDIO_API_KEY = originalKey.trim();
+    if (process.env.NEXT_PUBLIC_DREAMSTUDIO_API_KEY) {
+      const originalKey = process.env.NEXT_PUBLIC_DREAMSTUDIO_API_KEY;
+      process.env.NEXT_PUBLIC_DREAMSTUDIO_API_KEY = originalKey.trim();
       
-      if (originalKey !== process.env.DREAMSTUDIO_API_KEY) {
-        console.log('⚠️ DREAMSTUDIO_API_KEY had whitespace that was trimmed');
+      if (originalKey !== process.env.NEXT_PUBLIC_DREAMSTUDIO_API_KEY) {
+        console.log('⚠️ NEXT_PUBLIC_DREAMSTUDIO_API_KEY had whitespace that was trimmed');
       }
       
-      console.log(`DREAMSTUDIO_API_KEY found (${process.env.DREAMSTUDIO_API_KEY.length} characters)`);
+      console.log(`NEXT_PUBLIC_DREAMSTUDIO_API_KEY found (${process.env.NEXT_PUBLIC_DREAMSTUDIO_API_KEY.length} characters)`);
     } else {
-      console.log('❌ DREAMSTUDIO_API_KEY is missing');
+      console.log('❌ NEXT_PUBLIC_DREAMSTUDIO_API_KEY is missing');
+      
+      // Check for incorrect variable name
+      if (process.env.DREAMSTUDIO_API_KEY) {
+        console.log('⚠️ Found DREAMSTUDIO_API_KEY instead of NEXT_PUBLIC_DREAMSTUDIO_API_KEY - using the wrong name!');
+      }
     }
   }
 } else {
@@ -58,7 +70,8 @@ const nextConfig = {
     domains: [
       'ipfs.io',
       'nftstorage.link',
-      'dweb.link'
+      'dweb.link',
+      'images.unsplash.com'
     ],
   },
   webpack: (config) => {
@@ -70,10 +83,13 @@ const nextConfig = {
     };
     return config;
   },
-  // Add environment variables to be accessible in the browser
+  // Make environment variables accessible in browser code
   env: {
-    NFT_STORAGE_KEY: process.env.NFT_STORAGE_KEY || '',
-    DREAMSTUDIO_API_KEY: process.env.DREAMSTUDIO_API_KEY || '',
+    NEXT_PUBLIC_NFT_STORAGE_KEY: process.env.NEXT_PUBLIC_NFT_STORAGE_KEY || '',
+    NEXT_PUBLIC_DREAMSTUDIO_API_KEY: process.env.NEXT_PUBLIC_DREAMSTUDIO_API_KEY || '',
+    NEXT_PUBLIC_PINATA_API_KEY: process.env.NEXT_PUBLIC_PINATA_API_KEY || '',
+    NEXT_PUBLIC_PINATA_API_SECRET: process.env.NEXT_PUBLIC_PINATA_API_SECRET || '',
+    NEXT_PUBLIC_PINATA_JWT: process.env.NEXT_PUBLIC_PINATA_JWT || '',
   },
 };
 

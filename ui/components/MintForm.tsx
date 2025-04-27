@@ -1,26 +1,28 @@
 import React, { useState, FormEvent, ChangeEvent } from 'react';
 import Image from 'next/image';
 import { generateImage, blobToFile } from '../ai';
-import { uploadImage, uploadMetadata } from '../ipfs';
+import { uploadFile, uploadMetadata } from '../ipfs';
 import { AI_CONFIG, STORAGE_CONFIG } from '../config';
-import EnvChecker from './EnvChecker';
 
 interface MintFormProps {
   onMintSuccess: () => void;
   nftContract: any;
+  marketContract?: any;
 }
 
 interface FormData {
   name: string;
   description: string;
   prompt: string;
+  price: string;
 }
 
-const MintForm: React.FC<MintFormProps> = ({ onMintSuccess, nftContract }) => {
+const MintForm: React.FC<MintFormProps> = ({ onMintSuccess, nftContract, marketContract }) => {
   const [formData, setFormData] = useState<FormData>({
     name: '',
     description: '',
-    prompt: ''
+    prompt: '',
+    price: ''
   });
   const [formErrors, setFormErrors] = useState<Partial<FormData>>({});
   const [isGenerating, setIsGenerating] = useState(false);
@@ -61,6 +63,14 @@ const MintForm: React.FC<MintFormProps> = ({ onMintSuccess, nftContract }) => {
     
     if (!formData.prompt.trim()) {
       errors.prompt = 'Prompt is required';
+    }
+
+    if (formData.price.trim()) {
+      // If price is provided, validate it's a positive number
+      const priceValue = parseFloat(formData.price);
+      if (isNaN(priceValue) || priceValue <= 0) {
+        errors.price = 'Price must be a positive number';
+      }
     }
     
     setFormErrors(errors);
@@ -129,7 +139,7 @@ const MintForm: React.FC<MintFormProps> = ({ onMintSuccess, nftContract }) => {
       const imageFile = blobToFile(generatedImage, `${formData.name.replace(/\s+/g, '-')}.png`);
       
       // Upload image to IPFS with temp token ID
-      const imageCid = await uploadImage(imageFile, tempTokenId);
+      const imageCid = await uploadFile(imageFile);
       
       // Upload metadata to IPFS with temp token ID
       const metadataURI = await uploadMetadata({
@@ -140,22 +150,42 @@ const MintForm: React.FC<MintFormProps> = ({ onMintSuccess, nftContract }) => {
           {
             trait_type: 'Prompt',
             value: formData.prompt
+          },
+          {
+            trait_type: 'Price',
+            value: formData.price ? `${formData.price} DOT` : "Not for sale"
           }
         ]
-      }, tempTokenId);
+      });
       
       // Mint NFT
       const tokenId = await nftContract.mintNFT(metadataURI);
       
-      // If we got a valid token ID back, we could update the collection
-      // with the actual token ID, but this is optional since the temp ID works fine
+      // If a price was set and we successfully minted, auto-list the NFT
+      if (tokenId !== null && formData.price.trim()) {
+        try {
+          // This is where we would call the marketplace contract to list the NFT
+          console.log(`Auto-listing NFT #${tokenId} for ${formData.price} DOT`);
+          
+          // If the nftContract has a marketContract field, use it to list the NFT
+          if (marketContract) {
+            await marketContract.listNFT(tokenId, formData.price);
+            console.log(`NFT #${tokenId} successfully listed for ${formData.price} DOT`);
+          }
+        } catch (listingError) {
+          console.error('Error listing NFT:', listingError);
+          // We don't throw here because the NFT was successfully minted
+          // Just show a warning that listing failed
+        }
+      }
       
       if (tokenId !== null) {
         // Reset form and state
         setFormData({
           name: '',
           description: '',
-          prompt: ''
+          prompt: '',
+          price: ''
         });
         setGeneratedImage(null);
         setImagePreviewUrl('');
@@ -179,16 +209,14 @@ const MintForm: React.FC<MintFormProps> = ({ onMintSuccess, nftContract }) => {
     setFormData({
       name: '',
       description: '',
-      prompt: ''
+      prompt: '',
+      price: ''
     });
     setFormErrors({});
   };
 
   return (
     <div className="max-w-3xl mx-auto bg-gray-800 rounded-xl p-6 shadow-lg">
-      {/* Environment Variable Checker */}
-      <EnvChecker />
-      
       {!generatedImage ? (
         /* Image Generation Form */
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -244,6 +272,32 @@ const MintForm: React.FC<MintFormProps> = ({ onMintSuccess, nftContract }) => {
             {formErrors.prompt && (
               <p className="mt-1 text-sm text-red-500">{formErrors.prompt}</p>
             )}
+          </div>
+          
+          <div>
+            <label htmlFor="price" className="block text-sm font-medium text-gray-300 mb-1">
+              List Price (DOT) <span className="text-xs text-gray-400">(Optional)</span>
+            </label>
+            <div className="flex items-center">
+              <input
+                id="price"
+                name="price"
+                type="number"
+                step="0.01"
+                min="0"
+                className="form-input"
+                placeholder="Set a price to automatically list your NFT"
+                value={formData.price}
+                onChange={handleChange}
+              />
+              <span className="ml-2 text-sm font-medium text-indigo-300">DOT</span>
+            </div>
+            {formErrors.price && (
+              <p className="mt-1 text-sm text-red-500">{formErrors.price}</p>
+            )}
+            <p className="mt-1 text-xs text-gray-400">
+              If you set a price, your NFT will be automatically listed for sale after minting.
+            </p>
           </div>
           
           <div className="pt-2">
@@ -326,6 +380,13 @@ const MintForm: React.FC<MintFormProps> = ({ onMintSuccess, nftContract }) => {
                 <h4 className="text-sm font-medium text-gray-400">AI Prompt</h4>
                 <p className="text-white">{formData.prompt}</p>
               </div>
+              
+              {formData.price && (
+                <div className="mt-4">
+                  <h4 className="text-sm font-medium text-gray-400">Price</h4>
+                  <p className="text-white font-semibold">{formData.price} DOT</p>
+                </div>
+              )}
             </div>
           </div>
           

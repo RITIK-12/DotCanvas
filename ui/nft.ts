@@ -29,6 +29,16 @@ export interface NFTListing {
   tokenId: number;
   price: bigint;
   active: boolean;
+  metadata?: {
+    name: string;
+    description: string;
+    image: string;
+    attributes?: Array<{
+      trait_type: string;
+      value: string | number;
+    }>;
+  };
+  uri?: string;
 }
 
 /**

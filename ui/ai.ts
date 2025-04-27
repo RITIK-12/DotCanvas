@@ -22,7 +22,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Blob
   try {
     const apiKey = AI_CONFIG.apiKey;
     if (!apiKey) {
-      throw new Error('Stability AI API key is missing. Please add DREAMSTUDIO_API_KEY to your .env.local file.');
+      throw new Error('Stability AI API key is missing. Please add NEXT_PUBLIC_DREAMSTUDIO_API_KEY to your .env.local file.');
     }
     
     // Merge default parameters with provided parameters

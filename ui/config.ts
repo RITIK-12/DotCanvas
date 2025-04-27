@@ -22,23 +22,26 @@ export const NETWORK_CONFIG = {
 
 // NFT.Storage configuration
 export const STORAGE_CONFIG = {
-  // API key might contain periods or other special characters - use as is without manipulation
-  apiKey: process.env.NFT_STORAGE_KEY || "",
-  gatewayUrl: "https://ipfs.io/ipfs/"
+  // Using NEXT_NFT_STORAGE_KEY as specified
+  apiKey: process.env.NEXT_PUBLIC_NFT_STORAGE_KEY || "",
+  gatewayUrl: "https://nftstorage.link/ipfs/",  // faster, same CID
+  pinataJWT: process.env.NEXT_PUBLIC_PINATA_JWT || "",
+  pinataApiKey: process.env.NEXT_PUBLIC_PINATA_API_KEY || "",
+  pinataApiSecret: process.env.NEXT_PUBLIC_PINATA_API_SECRET || ""
 };
 
 // Debug the API key format
-if (process.env.NFT_STORAGE_KEY) {
-  console.log('NFT.Storage API key length:', process.env.NFT_STORAGE_KEY.length);
-  console.log('First 5 chars:', process.env.NFT_STORAGE_KEY.substring(0, 5));
-  console.log('Last 5 chars:', process.env.NFT_STORAGE_KEY.substring(process.env.NFT_STORAGE_KEY.length - 5));
+if (process.env.NEXT_PUBLIC_NFT_STORAGE_KEY) {
+  console.log('NFT.Storage API key length:', process.env.NEXT_PUBLIC_NFT_STORAGE_KEY.length);
+  console.log('First 5 chars:', process.env.NEXT_PUBLIC_NFT_STORAGE_KEY.substring(0, 5));
+  console.log('Last 5 chars:', process.env.NEXT_PUBLIC_NFT_STORAGE_KEY.substring(process.env.NEXT_PUBLIC_NFT_STORAGE_KEY.length - 5));
 }
 
 // AI service configuration
 export const AI_CONFIG = {
   localService: false,
   apiEndpoint: "https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/text-to-image",
-  apiKey: process.env.DREAMSTUDIO_API_KEY || ""
+  apiKey: process.env.NEXT_PUBLIC_DREAMSTUDIO_API_KEY || ""
 };
 
 // Default image generation params
@@ -100,4 +103,4 @@ export const DOTCANVAS_MARKET_ABI = [
 ];
 
 // Add this to ensure we see how the key is being loaded
-console.log('Raw NFT_STORAGE_KEY from env:', process.env.NFT_STORAGE_KEY); 
+console.log('Raw NFT_STORAGE_KEY from env:', process.env.NEXT_PUBLIC_NFT_STORAGE_KEY); 

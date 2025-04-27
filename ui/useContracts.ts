@@ -3,7 +3,31 @@ import { useState, useEffect, useCallback } from 'react';
 import { ethers } from 'ethers';
 import { CONTRACT_ADDRESSES, DOTCANVAS_NFT_ABI, DOTCANVAS_MARKET_ABI } from './config';
 import { NFT, NFTListing } from './nft';
-import { fetchMetadata } from './ipfs';
+import { ipfsToHttps } from './ipfs';
+
+// Simple fetchMetadata function to replace the missing export
+async function fetchMetadata(uri: string): Promise<any> {
+  try {
+    const url = ipfsToHttps(uri);
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch metadata: ${response.statusText}`);
+    }
+    
+    const metadata = await response.json();
+    
+    // Convert the image URI to HTTP if needed
+    if (metadata.image) {
+      metadata.image = ipfsToHttps(metadata.image);
+    }
+    
+    return metadata;
+  } catch (error) {
+    console.error('Error fetching metadata from IPFS:', error);
+    throw error;
+  }
+}
 
 // Hook for accessing NFT contract functions
 export function useNFTContract() {
@@ -31,6 +55,15 @@ export function useNFTContract() {
           DOTCANVAS_NFT_ABI,
           ethersSigner
         );
+        
+        // Check if contract is deployed by calling a view function
+        try {
+          await contract.name();
+          console.log("NFT contract connected successfully");
+        } catch (contractError) {
+          console.warn("NFT contract might not be deployed at the specified address:", contractError);
+          // We'll still set the contract, but UI should handle failures gracefully
+        }
         
         setProvider(ethersProvider);
         setSigner(ethersSigner);
@@ -63,25 +96,42 @@ export function useNFTContract() {
     if (!nftContract || !userAddress) return [];
     
     try {
-      const balance = await nftContract.balanceOf(userAddress);
-      const nfts: NFT[] = [];
-      
-      for (let i = 0; i < balance; i++) {
-        const tokenId = await nftContract.tokenOfOwnerByIndex(userAddress, i);
-        const uri = await nftContract.tokenURI(tokenId);
-        const metadata = await fetchMetadata(uri);
+      // First, check if the contract supports the required interfaces
+      try {
+        const balance = await nftContract.balanceOf(userAddress);
+        const balanceNumber = Number(balance);
         
-        nfts.push({
-          id: i,
-          tokenId: Number(tokenId),
-          owner: userAddress,
-          creator: userAddress, // This is a simplification; in reality, we might want to track the original creator
-          metadata,
-          uri
-        });
+        const nfts: NFT[] = [];
+        
+        for (let i = 0; i < balanceNumber; i++) {
+          try {
+            const tokenId = await nftContract.tokenOfOwnerByIndex(userAddress, i);
+            const uri = await nftContract.tokenURI(tokenId);
+            const metadata = await fetchMetadata(uri);
+            
+            nfts.push({
+              id: i,
+              tokenId: Number(tokenId),
+              owner: userAddress,
+              creator: userAddress, // This is a simplification; in reality, we might want to track the original creator
+              metadata,
+              uri
+            });
+          } catch (indexError) {
+            console.error(`Error fetching token at index ${i}:`, indexError);
+            // Continue to the next token even if one fails
+          }
+        }
+        
+        return nfts;
+      } catch (balanceError) {
+        console.error('Error checking balance:', balanceError);
+        
+        // Fallback approach: If the contract doesn't properly implement balanceOf
+        // or if there's another issue, return an empty array
+        console.log('NFT Contract may not be deployed or does not implement ERC721 correctly.');
+        return [];
       }
-      
-      return nfts;
     } catch (error) {
       console.error('Error fetching user NFTs:', error);
       return [];
@@ -164,6 +214,22 @@ export function useMarketContract() {
           DOTCANVAS_NFT_ABI,
           ethersSigner
         );
+        
+        // Check if contracts are deployed by calling view functions
+        try {
+          await marketContractInstance.getListingCount();
+          console.log("Market contract connected successfully");
+        } catch (contractError) {
+          console.warn("Market contract might not be deployed at the specified address:", contractError);
+          // We'll still set the contract, but UI should handle failures gracefully
+        }
+        
+        try {
+          await nftContractInstance.name();
+          console.log("NFT contract connected successfully from market hook");
+        } catch (contractError) {
+          console.warn("NFT contract might not be deployed at the specified address (from market hook):", contractError);
+        }
         
         setProvider(ethersProvider);
         setSigner(ethersSigner);
