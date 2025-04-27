@@ -9,12 +9,13 @@ import WalletButton from '../components/WalletButton';
 import MintForm from '../components/MintForm';
 import GalleryCard from '../components/GalleryCard';
 import BuyModal from '../components/BuyModal';
+import UploadArtForm from '../components/UploadArtForm';
 import { ethers } from 'ethers';
 import { getSampleListings } from '../sampleData';
 
 export default function Home() {
   // State management
-  const [activeTab, setActiveTab] = useState<'browse' | 'mint' | 'my-nfts'>('browse');
+  const [activeTab, setActiveTab] = useState<'browse' | 'mint' | 'my-nfts' | 'upload'>('browse');
   const [nfts, setNfts] = useState<NFT[]>([]);
   const [listings, setListings] = useState<NFTListing[]>([]);
   const [selectedNft, setSelectedNft] = useState<NFT | null>(null);
@@ -235,6 +236,18 @@ export default function Home() {
                     My Collection
                   </button>
                 </li>
+                <li>
+                  <button
+                    onClick={() => setActiveTab('upload')}
+                    className={`px-3 py-2 rounded-lg transition-colors ${
+                      activeTab === 'upload'
+                        ? 'bg-indigo-600 text-white'
+                        : 'text-gray-300 hover:text-white'
+                    }`}
+                  >
+                    Mint Art
+                  </button>
+                </li>
               </ul>
             </nav>
             <WalletButton 
@@ -287,6 +300,16 @@ export default function Home() {
             }`}
           >
             Collection
+          </button>
+          <button
+            onClick={() => setActiveTab('upload')}
+            className={`px-3 py-2 rounded-lg text-sm ${
+              activeTab === 'upload'
+                ? 'bg-indigo-600 text-white'
+                : 'text-gray-300 hover:text-white'
+            }`}
+          >
+            Mint Art
           </button>
         </div>
       </div>
@@ -349,6 +372,18 @@ export default function Home() {
           <div>
             <h2 className="text-2xl font-bold mb-6">Create New Artwork</h2>
             <MintForm
+              onMintSuccess={fetchUserNFTs}
+              nftContract={nftContract}
+              marketContract={marketContract}
+            />
+          </div>
+        )}
+
+        {/* Upload Art */}
+        {isConnected && activeTab === 'upload' && (
+          <div>
+            <h2 className="text-2xl font-bold mb-6">Mint Your Artwork</h2>
+            <UploadArtForm
               onMintSuccess={fetchUserNFTs}
               nftContract={nftContract}
               marketContract={marketContract}
